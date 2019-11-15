@@ -1,4 +1,5 @@
 const User = require('../models/userModel')
+const jwt = require('jsonwebtoken')
 
 exports.signup = async(req,res,next) => {
     // const newUser = await User.create(req.body)
@@ -9,10 +10,18 @@ exports.signup = async(req,res,next) => {
         passwordConfirm:req.body.passwordConfirm
     })
 
+    const payload = {id:newUser._id}
+    const option = {expiresIn:'90d'}
+    const token = jwt.sign(payload,'ultra-piyush-garg',option)
+
+
+
+
     res.status(201).json({
         status:'success',
+        token,
         data:{
-            user:newUser
+            user:newUser,
         }
     })
 }
