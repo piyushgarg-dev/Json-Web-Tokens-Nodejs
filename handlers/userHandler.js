@@ -1,6 +1,6 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
-
+const { z } = require("zod");
 const signToken = id =>{
     const payload = { id: id };
     const option = { expiresIn: "90d" };
@@ -8,14 +8,30 @@ const signToken = id =>{
     return jwt.sign(payload, "ultra-piyush-garg", option);
 }
 
+const userSchema = z.object({
+  name: z.string().min(3),
+  email: z.string().email(),
+  password: z.string().min(7),
+  passwordConfirm: z.string().min(7),
+});
+
 exports.signup = async (req, res, next) => {
-  // const newUser = await User.create(req.body)
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm
-  });
+  try {
+    const validatedData = userSchema.parse(req.body);
+    const newUser = await User.create(validatedData);
+    res.status(201).json({
+      status: "success",
+      data: {
+        user: newUser,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "fail",
+      message: error.message,
+    });
+  }
+};
 
   
   const token = signToken(newUser._id)
